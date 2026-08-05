@@ -1,6 +1,4 @@
 #! /usr/bin/env node
-import fs from 'node:fs'
-import path from 'node:path'
 import { Command } from 'commander'
 import { version, description } from '../package.json'
 import type {
@@ -62,17 +60,6 @@ const addConnectionOptions = (cmd: Command): Command =>
         .option('--debug', '输出调试日志，默认false')
         .option('--json', '以 JSON 结构化结果输出到 stdout（人类日志走 stderr），便于脚本/agent 解析')
 
-/** 私钥以文件路径传入（相对启动目录），读为内容交给 ssh2；读失败抛 ConfigError。 */
-const readPrivateKey = (p: unknown): string | undefined => {
-    if (p === undefined) return undefined
-    const keyPath = path.resolve(process.cwd(), String(p))
-    try {
-        return String(fs.readFileSync(keyPath))
-    } catch (e) {
-        throw new ConfigError(`读取私钥文件失败：${keyPath}`, { cause: e })
-    }
-}
-
 /** 从扁平 CLI 选项构造连接配置与公共调用级开关。 */
 const buildBase = (o: Record<string, unknown>): RunOption => ({
     config: o.config as string | undefined,
@@ -84,7 +71,8 @@ const buildBase = (o: Record<string, unknown>): RunOption => ({
         port: o.connectPort !== undefined ? Number(o.connectPort) : undefined,
         username: o.connectUsername as string | undefined,
         password: o.connectPassword as string | undefined,
-        privateKey: readPrivateKey(o.connectPrivateKey),
+        // 路径 → 内容的归一化统一在 resolveConfig（resolvePrivateKey）里做，与配置文件同一链路
+        privateKey: o.connectPrivateKey as string | undefined,
         passphrase: o.connectPassphrase as string | undefined,
     },
 })

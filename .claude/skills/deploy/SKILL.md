@@ -28,7 +28,7 @@ description: 用 winkops 把本地目录通过 SFTP 部署到远程服务器。�
 {
     "connect": { "host": "1.2.3.4", "port": 22, "username": "root", "password": "${SSH_PWD}" },
     // 凭据可用 ${ENV_VAR} 引用，校验前从环境变量（优先）或同目录 .env 注入，缺变量报错、不落明文
-    // 或密钥登录：把 password 换成 "privateKey": "<私钥内容>", 可选 "passphrase": "***"
+    // 或密钥登录：把 password 换成 "privateKey": "~/.ssh/id_rsa"（文件路径，支持 ~/；也可配私钥内容），可选 "passphrase": "***"
     "local": "dist",
     "remote": "/var/www/app",
     "sftpOptions": {

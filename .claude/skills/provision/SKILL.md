@@ -31,7 +31,7 @@ connect:
     host: 1.2.3.4
     port: 22
     username: root
-    password: ${SSH_PWD} # 或密钥登录：privateKey / passphrase
+    password: ${SSH_PWD} # 或密钥登录：privateKey（文件路径或内容）/ passphrase
 stack:
     nodejs: '20' # 经 nvm 安装并设为默认；版本号
     python: '3.11.9' # 经 pyenv 安装并设为全局；建议用完整补丁号

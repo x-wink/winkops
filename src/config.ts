@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import yaml from 'js-yaml'
 import { z } from 'zod'
@@ -171,6 +172,24 @@ export const loadConfigFile = (configPath: string): RunOption => {
     return parsed.data as RunOption
 }
 
+/** 密钥内容必含换行（PEM/OpenSSH/PPK 均为多行文本）或以 `-----` 开头；单行普通字符串视为文件路径。 */
+const looksLikeKeyContent = (v: string): boolean => v.includes('\n') || v.startsWith('-----')
+
+/**
+ * 归一化 `connect.privateKey`：既接受密钥内容，也接受私钥文件路径（业界惯例，如 ssh config / ansible
+ * 配的都是路径）。路径支持 `~/` 展开，相对路径基于启动目录；读失败抛 {@link ConfigError}。
+ */
+export const resolvePrivateKey = (value: string): string => {
+    if (looksLikeKeyContent(value)) return value
+    const expanded = value.startsWith('~/') ? path.join(os.homedir(), value.slice(2)) : value
+    const abs = resolveLocal(expanded)
+    try {
+        return String(fs.readFileSync(abs))
+    } catch (e) {
+        throw new ConfigError(`读取私钥文件失败：${abs}`, { cause: e })
+    }
+}
+
 /** 判断是否为可深合并的普通对象（排除数组与 null）。 */
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
     Boolean(v) && typeof v === 'object' && !Array.isArray(v)
@@ -266,7 +285,11 @@ export const resolveConfig = (
     const cliJson = options.json ?? false
     const cliDryRun = options.dryRun ?? false
     const raw = mergeConfig(options)
-    const connect = raw.connect ?? {}
+    const connect = { ...raw.connect }
+    // 私钥统一在此归一化（路径 → 内容），单机与多机（每台经 run→resolveConfig）都覆盖到
+    if (connect.privateKey && typeof connect.privateKey === 'string') {
+        connect.privateKey = resolvePrivateKey(connect.privateKey)
+    }
     // 密码登录或密钥登录二选一：privateKey / agent 任一存在即可，允许密码留空
     const hasAuth = Boolean(connect.password) || Boolean(connect.privateKey) || Boolean(connect.agent)
     if (

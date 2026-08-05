@@ -18,7 +18,8 @@ describe('run（dry-run）', () => {
     })
 
     it('密钥登录：仅提供 privateKey 也能通过配置校验', async () => {
-        const r = await run({ ...base, connect: { ...base.connect, privateKey: 'FAKE-KEY' } })
+        // 单行且不以 ----- 开头的值会被当作文件路径，密钥内容夹具须带 PEM 头
+        const r = await run({ ...base, connect: { ...base.connect, privateKey: '-----BEGIN FAKE KEY-----' } })
         expect(r.dryRun).toBe(true)
         expect(r.transferred.length).toBeGreaterThan(0)
     })

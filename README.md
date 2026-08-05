@@ -122,6 +122,7 @@ npx winkops -c ./wink.json
 > - 配置文件作为**基底**，命令行/编程式**显式设置**的字段（`--connect-host`、`--remote`、`--sftp-*` 等）会**深合并**覆盖其上；未显式设置的字段保留文件值。例如 `-c wink.json --remote /other` 只改 `remote`，连接信息仍取自文件。
 > - `--env` 选中的环境覆盖介于二者之间：先叠加到文件基底，再被显式参数覆盖。
 > - 顶层 `debug` 会作为 `sftpOptions.debug` 的默认值。
+> - 密钥登录时 `connect.privateKey` 可直接配**私钥文件路径**（如 `"~/.ssh/id_rsa"`，支持 `~/` 展开），自动读为内容；也可配私钥内容本身。
 > - 含密码的配置文件请加入 `.gitignore`，或改用 `${ENV_VAR}` / CI 密钥注入，避免提交明文。
 
 ### 配置项
@@ -135,7 +136,7 @@ npx winkops -c ./wink.json
 | `connect.port`                 | number   | —       | 远程服务器端口（必填）                                               |
 | `connect.username`             | string   | —       | 用户名（必填）                                                       |
 | `connect.password`             | string   | —       | 密码（与 `privateKey` 二选一）                                       |
-| `connect.privateKey`           | string   | —       | 私钥内容（密钥登录，与 `password` 二选一）                           |
+| `connect.privateKey`           | string   | —       | 私钥文件路径或私钥内容（密钥登录，与 `password` 二选一，支持 `~/`）  |
 | `connect.passphrase`           | string   | —       | 私钥口令（加密私钥时需要）                                           |
 | `sftpOptions.excludes`         | string[] | `[]`    | 要排除的本地目录，仅支持全字匹配                                     |
 | `sftpOptions.ignore`           | string[] | `[]`    | gitignore 风格忽略规则（与 `.winkignore` 合并）                      |
@@ -504,7 +505,7 @@ npx winkops -c ./wink.json --json | jq '.transferred'
 ## ⚠️ 安全须知
 
 - **`clear` 会执行 `rm -rf` 清空远程目录，属高危操作**。请务必确认 `remote` 指向正确；工具已内置护栏拒绝清空空路径 / `/` 等危险目标，但仍建议先 `--dry-run` 预演。
-- 支持密码或 SSH 密钥登录（`--connect-private-key` 传私钥文件路径）。**CI / 生产优先用密钥登录**，明文密码不适合 CI。
+- 支持密码或 SSH 密钥登录：`connect.privateKey`（配置文件）与 `--connect-private-key`（CLI）均可传**私钥文件路径**（支持 `~/`，单行非 `-----` 开头的值按路径读取）或私钥内容。**CI / 生产优先用密钥登录**，明文密码不适合 CI。
 - `--debug` 打印配置时会自动对密码 / 密钥 / 口令等敏感字段脱敏。
 - 建议不要在命令行明文写密码，优先用配置文件（加入 `.gitignore`）、密钥或 CI 密钥注入。
 - 实跑默认在 `~/.winkops/audit.log` 追加审计记录，便于事后排查；可用 `--audit-log` 改路径、`--no-audit` 关闭。

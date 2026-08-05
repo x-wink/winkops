@@ -82,7 +82,7 @@ pnpm run release:tag # 待 main 完整门禁绿后再推 tag（git push --follow
 - **文件级备份/回滚**（`sftpOptions.backup` / `--sftp-backup`）：部署前对**已存在**的远程目标 `backupRemote`（`cp -a` 到 `${remote}.wink-bak.<ts>`）；任一文件失败则 `restoreRemote` 回滚（`rm -rf` + `mv`），**回滚后不执行 afterRunCommand**；成功保留快照。`rollback`（`--rollback`）在父目录按 `${base}.wink-bak.` 前缀找时间戳最大者还原。回滚仅文件级，不撤销钩子副作用。
 - **多机**（`hosts` 数组 / `--hosts`）：`runMany` 每台一个独立 `SshSession`；continue（默认，`mapPool` 受限并发跑完汇总）/ `failFast`（顺序、首台失败即停）。连接/配置错误按主机捕获进 `HostDeployResult.error`，不互相影响。`runAuto` 据 `hosts` 是否非空分派单机/多机；`run`/`runMany` 都用 `collectHosts`（options.hosts 优先，否则配置文件 hosts）。
 - **退出码**：config 2 / connection 3 / remote-command 4 / transfer 5 / 通用 1。
-- 登录方式：密码或密钥（`connect.privateKey` / `passphrase` / `agent`）二选一，`resolveConfig` 校验至少其一；CLI `--connect-private-key` 传文件路径，由 `index.ts` 读为内容。
+- 登录方式：密码或密钥（`connect.privateKey` / `passphrase` / `agent`）二选一，`resolveConfig` 校验至少其一。**`privateKey` 统一在 `resolveConfig` 归一化**（`resolvePrivateKey`）：含换行或以 `-----` 开头视为密钥内容原样透传，否则按文件路径读取（支持 `~/` 展开，相对启动目录）；配置文件、CLI `--connect-private-key`、编程式、多机 `hosts[].privateKey`（每台经 run→resolveConfig）同走这一条链路，`index.ts` 不再单独读文件。
 
 ## CLI ↔ config mapping
 

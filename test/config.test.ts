@@ -109,6 +109,36 @@ describe('resolveConfig', () => {
     })
 })
 
+describe('privateKey 路径归一化', () => {
+    const FAKE_PEM = '-----BEGIN RSA PRIVATE KEY-----\nfake\n-----END RSA PRIVATE KEY-----\n'
+    const keyConfig = (privateKey: string) => ({
+        ...validConfig,
+        connect: { host: 'h', port: 22, username: 'u', privateKey },
+    })
+
+    it('配置文件里配私钥文件路径：自动读为内容', () => {
+        const keyPath = write('id_test.pem', FAKE_PEM)
+        const p = write('wink.json', JSON.stringify(keyConfig(keyPath)))
+        expect(resolveConfig({ config: p }).connect.privateKey).toBe(FAKE_PEM)
+    })
+
+    it('内联密钥内容（PEM 多行文本）原样透传', () => {
+        const p = write('wink.json', JSON.stringify(keyConfig(FAKE_PEM)))
+        expect(resolveConfig({ config: p }).connect.privateKey).toBe(FAKE_PEM)
+    })
+
+    it('路径不存在抛 ConfigError（读取私钥文件失败）', () => {
+        const p = write('wink.json', JSON.stringify(keyConfig(path.join(dir, 'nope.pem'))))
+        expect(() => resolveConfig({ config: p })).toThrow(/读取私钥文件失败/)
+    })
+
+    it('编程式传路径同样归一化', () => {
+        const keyPath = write('id_test.pem', FAKE_PEM)
+        const r = resolveConfig(keyConfig(keyPath))
+        expect(r.connect.privateKey).toBe(FAKE_PEM)
+    })
+})
+
 describe('interpolateSecrets', () => {
     const env = { PWD_VAR: 's3cret', HOST_VAR: 'example.com', EMPTY: '' }
 
