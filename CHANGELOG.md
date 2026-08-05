@@ -1,5 +1,25 @@
 # 更新日志
 
+## v1.1.0
+
+[compare changes](https://github.com/x-wink/winkops/compare/v3.0.0...v1.1.0)
+
+### 🚀 Enhancements
+
+- PrivateKey 支持配置私钥文件路径（resolveConfig 统一归一化，支持 ~/ 展开） ([e50e0cd](https://github.com/x-wink/winkops/commit/e50e0cd))
+
+### 💅 Refactors
+
+- 重命名为 winkops（@xwink/ops），重置版本至 1.0.0 ([2a7a419](https://github.com/x-wink/winkops/commit/2a7a419))
+
+### 📖 Documentation
+
+- **roadmap:** 记录 provision recipe 实战暴露的短板（docker 端口/数据卷不可配、nvm 境内不可达） ([0857df7](https://github.com/x-wink/winkops/commit/0857df7))
+
+### ❤️ Contributors
+
+- Xwink <1041367524@qq.com>
+
 ## v1.0.0
 
 `@xwink/ops`（CLI `winkops`）首个版本：面向个人开发者与 AI Agent 的 agentless「SSH 快捷操作入口」，覆盖单机服务器的完整生命周期。
