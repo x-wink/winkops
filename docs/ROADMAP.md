@@ -38,6 +38,11 @@
 
 **工程化**：oxlint/oxfmt + pnpm + TS 6；CI 门禁（lint/format/typecheck/test/build/e2e/commitlint，Node 22/24 + Node 18 冒烟）；覆盖率门槛；推 tag 经 OIDC 可信发布 npm（自动 provenance）。
 
+**provision recipe 待补短板**（2026-08-05 真实服务器接管实战暴露）：
+
+- mysql/redis docker 模式的**端口映射与数据卷不可配**（硬编码 `-p 3306:3306`、无 volume）——无法与既有实例并行 staging、容器重建即丢数据,本次实战被迫改用手写 docker-compose。应支持 `ports`/`volume` 选项,默认数据落宿主卷。
+- nodejs recipe 走 nvm 官方脚本,**境内服务器访问 GitHub 基本不可达**——应支持镜像源(npmmirror 二进制直装)或可配下载源。
+
 ## 前瞻路线 — 规模化与可视化 ⬜
 
 从「单机」扩展到「多机舰队」与「可视化 / 告警」：
