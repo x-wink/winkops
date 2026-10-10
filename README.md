@@ -84,7 +84,7 @@ npx winkops -l ./dist -r /apps/myapp -h 192.168.1.10 -p 22 -u root \
 
 ## 📦 使用配置文件（推荐）
 
-将参数写入 `wink.json` 并纳入版本管理，部署时只需指定路径：
+将参数写入 `wink.json` 并纳入版本管理，部署时用 `-c` 指定路径。winkops 不会自动读取当前目录的 `wink.json`：它有清空远端目录、改远端配置这类动作，在错的目录里自动读到别的项目的配置就是对错的服务器下手，所以每条命令都显式指定：
 
 ```bash
 npx winkops -c ./wink.json
@@ -156,6 +156,7 @@ npx winkops -c ./wink.json
 | `hosts`                        | object[] | —       | 多机部署：每台主机的连接覆盖（叠加到 `connect` 之上，至少含 `host`） |
 | `failFast`                     | boolean  | `false` | 多机失败策略：`true` 首台失败即停；`false` 跑完所有主机再汇总        |
 | `hostConcurrency`              | number   | `5`     | 多机：同时部署的主机数上限                                           |
+| `allowDrivePath`               | boolean  | `false` | 允许以盘符开头的远程路径（远端是 Windows 主机时）                    |
 
 ## ⌨️ 命令行选项
 
@@ -190,6 +191,7 @@ npx winkops -c ./wink.json
 | `--before-run-command <cmd>`    | `sftpOptions.beforeRunCommand` | 传输前执行的远程命令                           |
 | `--after-run-command <cmd>`     | `sftpOptions.afterRunCommand`  | 传输后执行的远程命令                           |
 | `--env <name>`                  | —                              | 选择多环境配置中的某个环境                     |
+| `--allow-drive-path`            | `allowDrivePath`               | 远端是 Windows 时允许盘符路径                  |
 | `--debug`                       | `debug`                        | 输出调试日志（走 stderr）                      |
 | `--dry-run`                     | —                              | 预演：打印将执行的动作但不连接、不落地         |
 | `--json`                        | —                              | 结构化结果输出到 stdout，便于脚本 / agent 解析 |
@@ -523,7 +525,9 @@ npx winkops -c ./wink.json --json | jq '.transferred'
 - **ops** — 运维原语：`exec`/`status`/`logs`/`ps`（诊断）+ `service`/`edit`（维护，写操作须确认）。
 - **provision** — 环境初始化，按 `stack` 收敛服务器（node/jdk/python/docker），「预演 diff → `--yes` 执行」安全流程，幂等。
 
-在你自己的项目里启用：把随包发布的 Skill 拷到项目的 `.claude/skills/`：
+不拷也能用：`winkops --help` 末尾列出这四个 Skill 和随包安装的 `SKILL.md` 所在目录，agent 跑一次帮助就能找到并按需读取，不必常驻在每个会话里。
+
+想让项目里的 Claude 自动触发，再把随包发布的 Skill 拷到项目的 `.claude/skills/`：
 
 ```bash
 # 在你的项目根目录执行

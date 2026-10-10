@@ -1,4 +1,5 @@
 #! /usr/bin/env node
+import path from 'node:path'
 import { Command } from 'commander'
 import { version, description } from '../package.json'
 import type {
@@ -36,11 +37,14 @@ import type { EditResult } from './edit'
 import { provision } from './provision'
 import type { ProvisionResult } from './provision'
 import { ConfigError, exitCodeOf, WinkOpsError } from './errors'
+import { skillsHelpText } from './skills'
 
 const program = new Command()
 program.name('winkops').version(version).description(description)
 // 释放 -h 给 connect-host（沿用本工具历史用法），help 仅保留 --help
 program.helpOption('--help', '显示帮助信息')
+// 源码（src/index.ts）与打包产物（dist/index.js）都在包根下一层，技能目录同为 <包根>/.claude/skills
+program.addHelpText('after', skillsHelpText(path.resolve(__dirname, '..', '.claude', 'skills')))
 
 /** 给命令挂上连接与调用级公共选项（部署 / 下载 / 浏览共用）。 */
 const addConnectionOptions = (cmd: Command): Command =>
@@ -48,7 +52,7 @@ const addConnectionOptions = (cmd: Command): Command =>
         .helpOption('--help', '显示帮助信息')
         .option(
             '-c --config <path>',
-            '指定配置文件路径（相对启动目录，支持 .json/.yaml/.yml），作为基底，显式命令行参数深合并覆盖其上'
+            '指定配置文件路径（相对启动目录，支持 .json/.yaml/.yml），作为基底，显式命令行参数深合并覆盖其上；不传则不读任何配置文件（不会自动找 wink.json）'
         )
         .option('-h --connect-host <host>', '远程服务器地址')
         .option('-p --connect-port <port>', '远程服务器端口')
@@ -57,6 +61,10 @@ const addConnectionOptions = (cmd: Command): Command =>
         .option('--connect-private-key <path>', '私钥文件路径（相对启动目录），用于密钥登录')
         .option('--connect-passphrase <pass>', '私钥口令（加密私钥时需要）')
         .option('--env <name>', '选择多环境配置中的某个环境（对应配置文件 environments 下的键）')
+        .option(
+            '--allow-drive-path',
+            '允许以盘符开头的远程路径（远端是 Windows 主机时用）；缺省拒绝，防 Git Bash 把 /path 改写成本机路径'
+        )
         .option('--debug', '输出调试日志，默认false')
         .option('--json', '以 JSON 结构化结果输出到 stdout（人类日志走 stderr），便于脚本/agent 解析')
 
@@ -66,6 +74,7 @@ const buildBase = (o: Record<string, unknown>): RunOption => ({
     debug: o.debug as boolean | undefined,
     json: Boolean(o.json),
     env: o.env as string | undefined,
+    allowDrivePath: o.allowDrivePath as boolean | undefined,
     connect: {
         host: o.connectHost as string | undefined,
         port: o.connectPort !== undefined ? Number(o.connectPort) : undefined,

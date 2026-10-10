@@ -14,7 +14,9 @@ description: 用 winkops 把本地目录通过 SFTP 部署到远程服务器。�
 3. **按结构化结果判定成败**，不要只看是否有输出：
     - **退出码**：0 成功；2 配置错误；3 连接失败；4 远程命令失败；5 文件传输失败；1 通用错误。
     - **`--json` 结果**：`ok` 为总判定，`failed[]` 列出失败文件，`warnings[]` 列出非致命告警（如 flat 同名覆盖）。
-4. **凭据不外泄**：debug 日志已对 `password` / `passphrase` / `privateKey` 脱敏；勿在对话或日志里回显明文密码。优先用密钥登录（`--connect-private-key`），明文密码不适合 CI。
+4. **每条命令都显式给配置**：winkops **不会自动读取当前目录的 `wink.json`**，不传 `-c` 就只认 `--connect-*` 等命令行参数，缺连接字段即报配置错误（退出码 2）。刻意不做自动发现：在错的目录里读到别的项目的配置就是对错的服务器下手。
+5. **Windows Git Bash 先关路径改写**：MSYS 会把以 `/` 开头的参数改写成本机路径（`-r /www/site` → `D:/Git/www/site`），先 `export MSYS_NO_PATHCONV=1`。winkops 缺省拒绝盘符开头的远程路径并提示这一条；远端确实是 Windows 主机时才加 `--allow-drive-path`（配置文件 `allowDrivePath: true`）。
+6. **凭据不外泄**：debug 日志已对 `password` / `passphrase` / `privateKey` 脱敏；勿在对话或日志里回显明文密码。优先用密钥登录（`--connect-private-key`），明文密码不适合 CI。
 
 > 下载与浏览远程目录（`pull` / `ls`）不在本 Skill，见 `pull` Skill。
 

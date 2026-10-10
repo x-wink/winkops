@@ -71,6 +71,8 @@ export interface RunOption {
     failFast?: boolean
     /** 多机并发上限（同时部署的主机数，默认 {@link DEFAULT_CONCURRENCY}）。 */
     hostConcurrency?: number
+    /** 允许以盘符开头的远程路径（远端是 Windows 主机时）；缺省拒绝，见 `assertPosixRemote`。 */
+    allowDrivePath?: boolean
 }
 
 /** 多环境覆盖：环境名下可覆盖的配置子集（不含 `env`/`environments`/`config` 等调用级字段）。 */
@@ -88,6 +90,7 @@ export interface ResolvedConfig {
     dryRun: boolean
     audit: boolean
     auditLog: string
+    allowDrivePath: boolean
 }
 
 /** 部署结果：结构化，供 CLI 渲染与定退出码、供 agent 解析。 */

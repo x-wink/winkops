@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { withSession } from './session'
 import { resolveConfig } from './config'
 import { Logger } from './logger'
-import { resolveLocal } from './pathmap'
+import { assertPosixRemote, resolveLocal } from './pathmap'
 import { guard } from './guard'
 import type { GuardResult } from './guard'
 import { ConfigError, TransferError } from './errors'
@@ -31,6 +31,7 @@ export type EditResult = GuardResult
  */
 export const edit = async (opts: EditOptions, options?: RunOption): Promise<EditResult> => {
     const config = resolveConfig(options, { requireLocal: false, requireRemote: false })
+    if (!config.allowDrivePath) assertPosixRemote(opts.remote, '远程目标文件')
     const logger = new Logger({ debug: config.debug, json: config.json })
     const localFile = resolveLocal(opts.file)
     if (!fs.existsSync(localFile)) throw new ConfigError(`本地内容文件不存在：${localFile}`)

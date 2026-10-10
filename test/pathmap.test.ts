@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { linuxPath, remoteIsDir, buildRemoteTarget, buildRemoteDir, findFlatCollisions } from '../src/pathmap'
+import {
+    assertPosixRemote,
+    linuxPath,
+    remoteIsDir,
+    buildRemoteTarget,
+    buildRemoteDir,
+    findFlatCollisions,
+} from '../src/pathmap'
 
 describe('linuxPath', () => {
     it('始终用 / 拼接，归一反斜杠', () => {
@@ -92,5 +99,16 @@ describe('findFlatCollisions', () => {
     })
     it('空列表安全', () => {
         expect(findFlatCollisions([])).toEqual([])
+    })
+})
+
+describe('assertPosixRemote', () => {
+    it('POSIX 路径放行', () => {
+        expect(() => assertPosixRemote('/www/wwwroot/site')).not.toThrow()
+        expect(() => assertPosixRemote('relative/dir')).not.toThrow()
+    })
+    it('盘符路径（被 MSYS 改写过）判配置错误并带上说明', () => {
+        expect(() => assertPosixRemote('D:/Git/www/site')).toThrow(/远程路径是本机盘符路径.*MSYS_NO_PATHCONV/s)
+        expect(() => assertPosixRemote('C:\\www', '远程目标文件')).toThrow(/远程目标文件是本机盘符路径/)
     })
 })

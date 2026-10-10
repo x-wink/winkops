@@ -5,7 +5,7 @@ description: 用 winkops 的运维原语对远程服务器做诊断与维护—�
 
 # winkops 运维原语（exec / status / logs / ps / service / edit）
 
-把 `winkops` 从「部署」展开为「SSH 快捷操作入口」的一组运维子命令。连接与配置同部署：`-c wink.json`（JSON/YAML、`${ENV_VAR}` secrets、多环境 `--env`）或纯 CLI 连接参数（`-h`/`-p`/`-u`/`--connect-password` 或 `--connect-private-key`）；都支持 `--json`。
+把 `winkops` 从「部署」展开为「SSH 快捷操作入口」的一组运维子命令。连接与配置同部署：`-c wink.json`（JSON/YAML、`${ENV_VAR}` secrets、多环境 `--env`）或纯 CLI 连接参数（`-h`/`-p`/`-u`/`--connect-password` 或 `--connect-private-key`）；都支持 `--json`。不会自动读取当前目录的 `wink.json`，每条命令都要 `-c` 或给全连接参数；Windows Git Bash 先 `export MSYS_NO_PATHCONV=1`（见 deploy 技能安全规约）。
 
 > 部署见 `deploy` Skill；下载/浏览见 `pull` Skill；环境初始化见 `provision` Skill。
 

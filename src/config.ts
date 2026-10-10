@@ -4,7 +4,7 @@ import path from 'node:path'
 import yaml from 'js-yaml'
 import { z } from 'zod'
 import type { RunOption, ResolvedConfig, SftpOption, EnvOverride } from './core'
-import { resolveLocal } from './pathmap'
+import { assertPosixRemote, resolveLocal } from './pathmap'
 import { defaultAuditPath } from './audit'
 import { ConfigError } from './errors'
 
@@ -62,6 +62,7 @@ const baseShape = {
     hosts: z.array(connectSchema).optional(),
     failFast: z.boolean().optional(),
     hostConcurrency: z.coerce.number().optional(),
+    allowDrivePath: z.boolean().optional(),
 }
 
 export const configSchema = z.object({
@@ -228,6 +229,7 @@ const CONFIG_FIELDS = [
     'hosts',
     'failFast',
     'hostConcurrency',
+    'allowDrivePath',
 ] as const
 
 /** 仅挑出 options 中**已显式设置**的配置字段（undefined 不参与覆盖）。 */
@@ -285,6 +287,8 @@ export const resolveConfig = (
     const cliJson = options.json ?? false
     const cliDryRun = options.dryRun ?? false
     const raw = mergeConfig(options)
+    const allowDrivePath = raw.allowDrivePath ?? false
+    if (raw.remote && !allowDrivePath) assertPosixRemote(raw.remote)
     const connect = { ...raw.connect }
     // 私钥统一在此归一化（路径 → 内容），单机与多机（每台经 run→resolveConfig）都覆盖到
     if (connect.privateKey && typeof connect.privateKey === 'string') {
@@ -304,7 +308,11 @@ export const resolveConfig = (
         throw new ConfigError(
             '配置至少包含以下属性：connect.host、connect.port、connect.username、' +
                 'connect.password 或 connect.privateKey（或 connect.agent）' +
-                (need.length ? '、' + need.join('、') : '')
+                (need.length ? '、' + need.join('、') : '') +
+                // 只给连接参数时报这句没用：缺的是配置文件本身，而 winkops 刻意不自动发现 wink.json
+                (options.config
+                    ? ''
+                    : '。未指定 -c 配置文件：winkops 不会自动读取 wink.json，用 -c <路径> 指定，或用 --connect-* 参数给全连接信息')
         )
     }
     const debug = raw.debug ?? cliDebug
@@ -323,5 +331,6 @@ export const resolveConfig = (
         // 否则取配置文件值、再默认开启；auditLog 同理由 CLI 覆盖文件。
         audit: options.audit === false ? false : (raw.audit ?? true),
         auditLog: options.auditLog ?? raw.auditLog ?? defaultAuditPath(),
+        allowDrivePath,
     }
 }

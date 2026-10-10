@@ -107,6 +107,27 @@ describe('resolveConfig', () => {
         )
         expect(() => resolveConfig({ config: p })).toThrow(/connect\.password 或 connect\.privateKey/)
     })
+
+    it('没给 -c 又缺连接字段时提示不会自动读取 wink.json；给了 -c 不提示', () => {
+        expect(() => resolveConfig({})).toThrow(/未指定 -c 配置文件：winkops 不会自动读取 wink\.json/)
+        const p = write('wink.json', JSON.stringify({ ...validConfig, connect: { host: 'h' } }))
+        expect(() => resolveConfig({ config: p })).toThrow(/^(?!.*未指定 -c).*配置至少包含/s)
+    })
+
+    it('远程路径是本机盘符路径（MSYS 改写过）时判配置错误', () => {
+        const p = write('wink.json', JSON.stringify({ ...validConfig, remote: 'D:/Git/www/site' }))
+        expect(() => resolveConfig({ config: p })).toThrow(/本机盘符路径.*MSYS_NO_PATHCONV.*--allow-drive-path/s)
+    })
+
+    it('allowDrivePath 放行盘符路径（远端是 Windows 主机），配置文件与显式参数都认', () => {
+        const p = write('wink.json', JSON.stringify({ ...validConfig, remote: 'C:/inetpub/site' }))
+        expect(resolveConfig({ config: p, allowDrivePath: true }).remote).toBe('C:/inetpub/site')
+        const q = write(
+            'wink2.json',
+            JSON.stringify({ ...validConfig, remote: 'C:/inetpub/site', allowDrivePath: true })
+        )
+        expect(resolveConfig({ config: q }).allowDrivePath).toBe(true)
+    })
 })
 
 describe('privateKey 路径归一化', () => {

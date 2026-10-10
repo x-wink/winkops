@@ -24,7 +24,7 @@ description: 用 winkops 的 provision 按声明式 stack 初始化/收敛单台
 
 ## 配置：stack 段
 
-在 `wink.json` / `wink.yaml` 里与部署共用 `connect`，新增 `stack` 段（YAML 更直观）：
+在 `wink.json` / `wink.yaml` 里与部署共用 `connect`，新增 `stack` 段（YAML 更直观）。不会自动读取当前目录的 `wink.json`，每条命令都要 `-c` 或给全连接参数；Windows Git Bash 先 `export MSYS_NO_PATHCONV=1`（见 deploy 技能安全规约）：
 
 ```yaml
 connect:

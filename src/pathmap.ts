@@ -1,4 +1,18 @@
 import path from 'node:path'
+import { ConfigError } from './errors'
+
+/**
+ * 远端缺省按 POSIX 主机对待，路径以盘符开头多半是调用方的 shell 改写过：Windows 的 Git Bash（MSYS）会把以 `/` 开头的参数
+ * 改成本机路径（`/www/site` → `D:/Git/www/site`）。照着这个路径传、再叠上 `--sftp-clear`，就是在远端写错地方，所以缺省判配置错误；
+ * 远端确实是 Windows 主机时由调用方用 `allowDrivePath`（`--allow-drive-path`）放行，不在这里调用。
+ */
+export const assertPosixRemote = (remote: string, what = '远程路径'): void => {
+    if (/^[A-Za-z]:[\\/]/.test(remote))
+        throw new ConfigError(
+            `${what}是本机盘符路径：${remote}。在 Windows 的 Git Bash 里跑时，MSYS 会把以 / 开头的参数改写成本机路径，` +
+                "先 export MSYS_NO_PATHCONV=1（或 MSYS2_ARG_CONV_EXCL='*'）再执行；远端确实是 Windows 主机时加 --allow-drive-path"
+        )
+}
 
 /** 相对 `process.cwd()` 解析本地路径为绝对路径。 */
 export const resolveLocal = (...paths: string[]): string => path.resolve(process.cwd(), ...paths)

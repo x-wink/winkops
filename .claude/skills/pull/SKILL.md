@@ -18,7 +18,7 @@ description: 用 winkops 从远程服务器下载文件/目录到本地（pull�
     - **退出码**：0 成功；2 配置错误；3 连接失败；5 下载失败（`pull`）；`ls` 失败为通用码 1（目录不存在等则按错误类型，常见为传输 5）。
     - **`--json`**：`ok` 为总判定；`pull` 的 `failed[]` 列出失败项，`ls` 的 `entries[]` 为目录项。
 2. **凭据不外泄**：优先密钥登录（`--connect-private-key`），debug 已对 `password`/`passphrase`/`privateKey` 脱敏，勿回显明文。
-3. **登录与配置同 deploy**：支持 `-c wink.json`（JSON/YAML）、`${ENV_VAR}` secrets、多环境 `--env <name>`；连接也可用纯 CLI 参数（`-h`/`-p`/`-u`/`--connect-password` 或 `--connect-private-key`）。
+3. **登录与配置同 deploy**：支持 `-c wink.json`（JSON/YAML）、`${ENV_VAR}` secrets、多环境 `--env <name>`；连接也可用纯 CLI 参数（`-h`/`-p`/`-u`/`--connect-password` 或 `--connect-private-key`）。不会自动读取当前目录的 `wink.json`，每条命令都要 `-c` 或给全连接参数；Windows Git Bash 先 `export MSYS_NO_PATHCONV=1`（见 deploy 技能安全规约）。
 
 ## pull — 下载
 
