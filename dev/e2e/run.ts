@@ -374,6 +374,27 @@ const main = async (): Promise<void> => {
                 cc.plannedConfigs[0].remote === '/etc/nginx/nginx.conf',
             r.json
         )
+
+        console.log(
+            '26) 盘符远程路径：缺省拒绝；配置文件 allowDrivePath 放行，命令行没传开关时不覆盖它（dry-run 不连接）'
+        )
+        const cfgDrive = path.join(tmp, 'drive.json')
+        const driveCfg = {
+            connect: { host: '127.0.0.1', port: Number(port), username: 'tester', password: 'pw' },
+            local: dist,
+            remote: 'C:/inetpub/site',
+        }
+        fs.writeFileSync(cfgDrive, JSON.stringify(driveCfg))
+        r = await runCli(['-c', cfgDrive, '--dry-run', '--json'])
+        check('缺省拒绝 → 退出码 2 / kind=config', r.code === 2 && r.json.kind === 'config', {
+            code: r.code,
+            json: r.json,
+        })
+        r = await runCli(['-c', cfgDrive, '--allow-drive-path', '--dry-run', '--json'])
+        check('--allow-drive-path 放行', r.json.ok === true && r.json.remote === 'C:/inetpub/site', r.json)
+        fs.writeFileSync(cfgDrive, JSON.stringify({ ...driveCfg, allowDrivePath: true }))
+        r = await runCli(['-c', cfgDrive, '--dry-run', '--json'])
+        check('配置文件 allowDrivePath 生效（命令行没传开关不覆盖成 false）', r.json.ok === true, r.json)
     } finally {
         await server.close()
         fs.rmSync(tmp, { recursive: true, force: true })

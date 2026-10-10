@@ -106,9 +106,14 @@ describe('assertPosixRemote', () => {
     it('POSIX 路径放行', () => {
         expect(() => assertPosixRemote('/www/wwwroot/site')).not.toThrow()
         expect(() => assertPosixRemote('relative/dir')).not.toThrow()
+        // 冒号后不跟分隔符的不是盘符路径（MSYS 改写出来的一定带分隔符）
+        expect(() => assertPosixRemote('a:b')).not.toThrow()
+        expect(() => assertPosixRemote('C:')).not.toThrow()
+        expect(() => assertPosixRemote('sftp://host/www')).not.toThrow()
     })
-    it('盘符路径（被 MSYS 改写过）判配置错误并带上说明', () => {
+    it('盘符路径（被 MSYS 改写过）判配置错误并带上说明，大小写盘符、两种分隔符都认', () => {
         expect(() => assertPosixRemote('D:/Git/www/site')).toThrow(/远程路径是本机盘符路径.*MSYS_NO_PATHCONV/s)
+        expect(() => assertPosixRemote('d:/git/www/site')).toThrow(/本机盘符路径/)
         expect(() => assertPosixRemote('C:\\www', '远程目标文件')).toThrow(/远程目标文件是本机盘符路径/)
     })
 })

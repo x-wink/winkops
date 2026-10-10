@@ -98,6 +98,16 @@ describe('edit（守护式编辑，mock ssh2）', () => {
         expect(h.state.execs).not.toContain('systemctl reload nginx') // 校验失败不应 reload
     })
 
+    it('目标是盘符路径：不连接就判配置错误；allowDrivePath 放行', async () => {
+        await expect(edit(opts({ remote: 'D:/Git/etc/nginx.conf' }), { connect: conn })).rejects.toThrow(
+            /远程目标文件是本机盘符路径/
+        )
+        expect(h.state.fastPuts).toHaveLength(0)
+        const r = await edit(opts({ remote: 'C:/nginx/conf/nginx.conf' }), { connect: conn, allowDrivePath: true })
+        expect(r.ok).toBe(true)
+        expect(h.state.fastPuts[0]).toMatchObject({ remote: 'C:/nginx/conf/nginx.conf' })
+    })
+
     it('本地内容文件不存在：抛配置错误', async () => {
         await expect(edit(opts({ file: path.join(tmp, 'nope') }), { connect: conn })).rejects.toThrow(/不存在/)
     })
