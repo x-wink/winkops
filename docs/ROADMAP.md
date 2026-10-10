@@ -65,7 +65,7 @@
 - `ops`（运维原语：`exec`/`status`/`logs`/`ps` 诊断 + `service`/`edit` 维护）
 - `provision`（环境初始化，按 stack 收敛）
 
-Skill 随 npm 包分发（`package.json#files` 含 `.claude/skills`）。现状：用户从 `node_modules/@xwink/ops/.claude/skills/` 拷贝到自己项目的 `.claude/skills/`。规划：`winkops skill install [name]` 自动安装，免去手动拷贝。
+Skill 随 npm 包分发（`package.json#files` 含 `.claude/skills`）。现状：`winkops --help` 末尾列出随包技能与安装位置，agent 跑一次帮助就能找到并按需读取，不常驻在每个会话里；要在项目里自动触发，再从 `node_modules/@xwink/ops/.claude/skills/` 拷贝到项目的 `.claude/skills/`。规划：`winkops skill install [name]` 自动安装，免去手动拷贝。
 
 **不用 MCP**：MCP 收益主要在跨平台与代码级护栏；护栏既已做进 CLI（任何调用方都安全），MCP 优势被削弱。待出现跨平台 agent 需求时，可基于 `SshSession` 编程式 API 低成本封装。
 
